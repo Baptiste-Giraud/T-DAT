@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+      body {
+        background-color: lightblue;
+        overflow: hidden;
+        background-image: url("background.jpeg");
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Recommendation</h1>
+    </div>
+    <div class="body">
+      <div id="button">
+        <button id="start-button"><i class="fa-solid fa-microphone"></i></button>
+        <button id="stop-button" disabled><i class="fa-solid fa-microphone-slash"></i></button>
+      </div>
+      <pre id="transcript"></pre>
+    </div>
+    <script>
+      const startButton = document.querySelector("#start-button");
+      const stopButton = document.querySelector("#stop-button");
+      const transcriptElement = document.querySelector("#transcript");
+
+      startButton.addEventListener("click", startRecording);
+      stopButton.addEventListener("click", stopRecording);
+
+      let recognition;
+      function startRecording() {
+        recognition = new webkitSpeechRecognition();
+        recognition.lang = "fr-FR";
+        recognition.start();
+        recognition.onresult = event => {
+          const text = event.results[0][0].transcript;
+          // transcriptElement.textContent = text;
+          sendTextToBackend(text);
+        };
+        startButton.disabled = true;
+        stopButton.disabled = false;
+      }
+
+      function stopRecording() {
+        recognition.stop();
+        startButton.disabled = false;
+        stopButton.disabled = true;
+      }
+
+      function sendTextToBackend(text) {
+        const endpoint = "http://localhost:3001/speech-recognition"; // URL du backend
+        const options = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ text })
+        };
+        fetch(endpoint, options)
+          .then(response => response.text())
+          .then(responseText => {
+            transcriptElement.textContent = responseText;
+          })
+          .then(console.log)
+          .catch(console.error);
+      }
+
+    </script>
+  </body>
+</html>
